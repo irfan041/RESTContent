@@ -1,0 +1,146 @@
+  REST API
+ 1. Controller -- we do write End Points
+    @GetMapping("/get")--fetch data
+	@PostMapping("/save")--Insert data
+    @PutMapping("/update")-- update data
+    @deleteMappig("/delete")--delete data	
+2. Service
+
+   Business Logic
+3.Repository
+
+  DB Logic
+  
+  
+     Data Flow
+	   REST API->Framwork of java  which will accept data in JSON/XML formate
+	   
+	   1. Producer(Send data from controller to client(Front End)(POSTMAN))
+	  2. Consumer(Sending data from Front-End to controller)
+	    
+		1.@RequestBody-> will use to get data(Object) from Front-Ent to BAck-End
+		     It will convert JSON object into java object 
+		2. @ResponseBody
+ Will use to get data from Controller to FrontEnd
+ it will convert java object in to JSON object		
+		3. ResponseEntity
+Will use to get data from Controller to FrontEnd with Response Header
+    Response Header
+	 1. Message Length
+	 2. Message type
+	 3. Message Staus Code
+	       404- Resource not found
+		   405- Method Mismatch
+	       400-Bad Request
+      200-Success
+	   204 -Empty Data
+	  
+       500- internal server Error
+	   
+ it will convert java object in to JSON object
+		4. @PathVariable
+		
+		  DB Operation with boot
+		  1. we added JPA and MYSQL Connector Dependency in pom.xml
+		  2. We have to write DB Configuration in Application.property file
+	 
+	   spring.jpa.hibernate.ddl-auto
+	   1. create- it will always create new table
+	   2. update- First it will check the table which we want to create 
+	    is exist or not. If it is exist it will use that other wise
+		  it will create new table
+	3. Validate- it will validate DB Column with Model attribute
+    4. create-drop- it will create and drop (Testing)
+
+Spring Security
+------------------------------------------------------
+1.	Authentication(Who are you/credentials)
+2.	Authorization(Access the End-Points)
+
+Admin (It has full access)
+Customer (it has limited Access)
+
+Role: Admin, Customer
+--------------------------------------------------------------------
+
+WebSecurityConfigurerAdapter(Pre define class)
+
+1.public void configure(AuthenticationManagerBuilder authenticationManagerBuilder)Authentication
+
+2.	protected void configure(HttpSecurity http)Authorization
+------------------------------------------------------------------
+   Encrypt the password
+     PasswordEncoder(Pre define class)
+    encode(Password)
+----------------------------------------------------------------------
+Stateless and state full
+
+JWT(Json Web Token)
+
+String str—  which will be a combination of username + time+ date+ ecret key+expiry time
+
+
+@Configuration
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+	@Autowired
+	UserDetailsServiceImpl userDetailsService;
+
+	@Autowired
+	private AuthEntryPointJwt unauthorizedHandler;
+
+	@Bean
+	public AuthTokenFilter authenticationJwtTokenFilter() {
+		return new AuthTokenFilter();
+	}
+
+	@Override
+	public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+		authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+	}
+
+	@Bean
+	@Override
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
+	}
+
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
+				.antMatchers("/api/auth/**").permitAll().antMatchers("/api/test/**").permitAll().anyRequest()
+				.authenticated();
+
+		http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+	}
+}
+	-----------------------------------
+	<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		
+		<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>0.9.1</version>
+		</dependency>
+		
+		
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
